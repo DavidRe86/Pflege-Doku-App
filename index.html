@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mein Pflege-Doku-Helfer</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background-color: var(--bg);
+      color: var(--text);
+      transition: background-color 0.3s, color 0.3s;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+    }
+    .dark {
+      --bg: #121212;
+      --text: #ffffff;
+    }
+    .light {
+      --bg: #ffffff;
+      --text: #000000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mein Pflege-Doku-Helfer</h1>
+  <label for="date">Datum:</label>
+  <input type="date" id="date"><br><br>
+  
+  <label for="patient">Patient auswählen:</label>
+  <select id="patient">
+    <option value="patient1">Patient 1</option>
+    <option value="patient2">Patient 2</option>
+  </select><br><br>
+
+  <textarea id="notes" placeholder="Notizen eingeben..."></textarea><br><br>
+  
+  <button onclick="downloadPDF()">PDF exportieren</button>
+  <button onclick="toggleDarkMode()">Darkmode umschalten</button>
+
+  <script>
+    const notesField = document.getElementById("notes");
+    const patientSelect = document.getElementById("patient");
+    const dateField = document.getElementById("date");
+
+    // Laden der gespeicherten Daten
+    function loadNotes() {
+      const patient = patientSelect.value;
+      notesField.value = localStorage.getItem("notes_" + patient) || "";
+      dateField.value = localStorage.getItem("date_" + patient) || "";
+    }
+
+    // Speichern bei Änderungen
+    notesField.addEventListener("input", () => {
+      localStorage.setItem("notes_" + patientSelect.value, notesField.value);
+    });
+
+    dateField.addEventListener("input", () => {
+      localStorage.setItem("date_" + patientSelect.value, dateField.value);
+    });
+
+    patientSelect.addEventListener("change", loadNotes);
+
+    // Darkmode-Umschalter
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+      document.body.classList.toggle("light");
+    }
+
+    // PDF-Erstellung
+    function downloadPDF() {
+      const patient = patientSelect.value;
+      const notes = notesField.value;
+      const date = dateField.value;
+      const blob = new Blob([`Datum: ${date}
+
+${notes}`], { type: "application/pdf" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = patient + "_Notizen.pdf";
+      link.click();
+    }
+
+    // PWA-Installation
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+
+    // Initiales Laden
+    document.body.classList.add("light");
+    loadNotes();
+  </script>
+</body>
+</html>
